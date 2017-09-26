@@ -273,37 +273,48 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 		a_nSubdivisions = 360;
 
 	Release();
-	Init();
+Init();
 
-	// Replace this with your code
-	
-	//TODO : Determine |height|
-	float m_fAbHeight = a_fHeight / 2.0f;
 
-	//TODO : determine top point based on 1/2 height
-	vector3 m_vTop(0, m_fAbHeight, 0);
-	//TODO : determine center of base based on -1/2 height
-	vector3 m_vBot(0, -m_fAbHeight, 0);
-	//TODO : determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
-	std::vector<vector3> m_vSubbies;
-	float m_fSinValue = 0.f;
-	float m_fCosValue = 0.f;
-	for (int i = 0; i < a_nSubdivisions; i++)
-	{
-		 // 360 / nSubs == arc; sin(arc * i);
-		m_vSubbies.push_back(vector3(m_fSinValue, -m_fAbHeight, m_fCosValue));
-		m_fSinValue = 0;
-	}
+// Determine |height|
+float m_fAbHeight = a_fHeight / 2.0f;
 
-	//TODO : Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
+// determine top point based on 1/2 height
+vector3 m_vTop(0, m_fAbHeight, 0);
 
-	//TODO : link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
+// determine center of base based on -1/2 height
+vector3 m_vBot(0, -m_fAbHeight, 0);
 
-	// -------------------------------
+// determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
+std::vector<vector3> m_vSubbies;
+float m_fSinValue = 0.f;
+float m_fCosValue = 0.f;
 
-	// Adding information about color
-	CompleteMesh(a_v3Color);
-	CompileOpenGL3X();
+for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
+{
+	// 360 / nSubs == arc; sin(arc * i);
+	m_vSubbies.push_back(vector3(m_fSinValue * a_fRadius, -m_fAbHeight, m_fCosValue * a_fRadius));
+	m_fSinValue = std::sin(((360 / a_nSubdivisions) * i) * (PI / 180.f));
+	m_fCosValue = std::cos(((360 / a_nSubdivisions) * i) * (PI / 180.f));
+}
+
+// Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
+for (int i = 0; i < m_vSubbies.size() - 1; i++)
+{
+	//AddTri(m_vSubbies[i], m_vSubbies[i++], m_vBot);
+	AddTri(m_vSubbies[i + 1], m_vSubbies[i], m_vBot);
+}
+// link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
+for (int i = 0; i < m_vSubbies.size() - 1; i++)
+{
+	AddTri(m_vSubbies[i], m_vSubbies[i + 1], m_vTop);
+
+}
+// -------------------------------
+
+// Adding information about color
+CompleteMesh(a_v3Color);
+CompileOpenGL3X();
 }
 void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisions, vector3 a_v3Color)
 {
@@ -321,21 +332,51 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Release();
 	Init();
 
-	// Replace this with your code
-	
-	//TODO : Top center point by 1/2 height
+	// Determine |height|
+	float m_fAbHeight = a_fHeight / 2.0f;
 
-	//TODO : Bottom center point by 1/2 height
+	// determine top point based on 1/2 height
+	vector3 m_vTop(0, m_fAbHeight, 0);
 
-	//TODO : top subdivisions by radius * sin(360 / sub) and radius * cos(360 / sub) and 1/2 height (x, z, y)
+	// determine center of base based on -1/2 height
+	vector3 m_vBot(0, -m_fAbHeight, 0);
+
+	// determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
+	std::vector<vector3> m_vSubbies;
+	float m_fSinValue = 0.f;
+	float m_fCosValue = 0.f;
+
+	for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
+	{
+		// 360 / nSubs == arc; sin(arc * i);
+		m_vSubbies.push_back(vector3(m_fSinValue * a_fRadius, -m_fAbHeight, m_fCosValue * a_fRadius));
+		m_fSinValue = std::sin(((360 / a_nSubdivisions) * i) * (PI / 180.f));
+		m_fCosValue = std::cos(((360 / a_nSubdivisions) * i) * (PI / 180.f));
+	}
 
 	//TODO : Bottom subvisions by top subdivisions.y - height;
-
+	for (int i = 0; i < a_nSubdivisions + 2; i++)
+	{
+		m_vSubbies.push_back(m_vSubbies[i] - vector3(0, a_fHeight, 0));
+	}
 	//TODO :  link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
-
+	for (int i = 0; i < m_vSubbies.size() / 2; i++)
+	{
+		AddTri(m_vSubbies[i], m_vSubbies[i + 1], m_vTop);
+	}
 	//TODO : Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
-
+	for (int i = m_vSubbies.size() / 2; i < m_vSubbies.size() - 1; i++)
+	{
+		AddTri(m_vSubbies[i + 1], m_vSubbies[i], m_vTop);
+	}
 	//TODO : Link each quad of sub points together (AddQuad(TopSub i, TopSub i++, BotSub i, BotSub i++); i++;)
+	int mid = m_vSubbies.size() / 2;
+
+	for (int i = 0; i < m_vSubbies.size() - 1; i++)
+	{
+
+	}
+
 
 	// -------------------------------
 
