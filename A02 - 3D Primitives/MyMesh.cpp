@@ -294,8 +294,8 @@ for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2
 {
 	// 360 / nSubs == arc; sin(arc * i);
 	m_vSubbies.push_back(vector3(m_fSinValue * a_fRadius, -m_fAbHeight, m_fCosValue * a_fRadius));
-	m_fSinValue = std::sin(((360 / a_nSubdivisions) * i) * (PI / 180.f));
-	m_fCosValue = std::cos(((360 / a_nSubdivisions) * i) * (PI / 180.f));
+	m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
+	m_fCosValue = std::cos(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
 }
 
 // Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
@@ -342,40 +342,39 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	vector3 m_vBot(0, -m_fAbHeight, 0);
 
 	// determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
-	std::vector<vector3> m_vSubbies;
+	std::vector<vector3> m_vTopShelf;
+	std::vector<vector3> m_vBottomShelf;
 	float m_fSinValue = 0.f;
 	float m_fCosValue = 0.f;
 
 	for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
 	{
 		// 360 / nSubs == arc; sin(arc * i);
-		m_vSubbies.push_back(vector3(m_fSinValue * a_fRadius, -m_fAbHeight, m_fCosValue * a_fRadius));
-		m_fSinValue = std::sin(((360 / a_nSubdivisions) * i) * (PI / 180.f));
-		m_fCosValue = std::cos(((360 / a_nSubdivisions) * i) * (PI / 180.f));
+		m_vTopShelf.push_back(vector3(m_fSinValue * a_fRadius, m_fAbHeight, m_fCosValue * a_fRadius));
+		m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
+		m_fCosValue = std::cos(((360 / (float)a_nSubdivisions) * i) * (PI / 180.f));
 	}
+
 
 	//TODO : Bottom subvisions by top subdivisions.y - height;
 	for (int i = 0; i < a_nSubdivisions + 2; i++)
 	{
-		m_vSubbies.push_back(m_vSubbies[i] - vector3(0, a_fHeight, 0));
+		m_vBottomShelf.push_back(m_vTopShelf[i] - vector3(0, a_fHeight, 0));
 	}
 	//TODO :  link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
-	for (int i = 0; i < m_vSubbies.size() / 2; i++)
+	for (int i = 0; i < m_vTopShelf.size() - 1; i++)
 	{
-		AddTri(m_vSubbies[i], m_vSubbies[i + 1], m_vTop);
+		AddTri(m_vTopShelf[i], m_vTopShelf[i + 1], m_vTop);
+		AddTri(m_vBottomShelf[i + 1], m_vBottomShelf[i], m_vBot);
 	}
-	//TODO : Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
-	for (int i = m_vSubbies.size() / 2; i < m_vSubbies.size() - 1; i++)
-	{
-		AddTri(m_vSubbies[i + 1], m_vSubbies[i], m_vTop);
-	}
+	
 	//TODO : Link each quad of sub points together (AddQuad(TopSub i, TopSub i++, BotSub i, BotSub i++); i++;)
-	int mid = m_vSubbies.size() / 2;
-
-	for (int i = 0; i < m_vSubbies.size() - 1; i++)
+	for (int i = 0; i < m_vTopShelf.size() - 1; i++)
 	{
-
+		AddQuad(m_vBottomShelf[i], m_vBottomShelf[i + 1], m_vTopShelf[i], m_vTopShelf[i + 1]);
 	}
+
+	
 
 
 	// -------------------------------
@@ -396,23 +395,52 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 		std::swap(a_fInnerRadius, a_fOuterRadius);
 
 	if (a_fHeight < 0.01f)
-		a_fHeight = 0.01f;
+a_fHeight = 0.01f;
 
-	if (a_nSubdivisions < 3)
-		a_nSubdivisions = 3;
-	if (a_nSubdivisions > 360)
-		a_nSubdivisions = 360;
+if (a_nSubdivisions < 3)
+	a_nSubdivisions = 3;
+if (a_nSubdivisions > 360)
+a_nSubdivisions = 360;
 
-	Release();
-	Init();
+Release();
+Init();
 
-	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-	// -------------------------------
+// Determine |height|
+float m_fAbHeight = a_fHeight / 2.0f;
 
-	// Adding information about color
-	CompleteMesh(a_v3Color);
-	CompileOpenGL3X();
+// determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
+std::vector<vector3> m_vInTop;
+std::vector<vector3> m_vOutTop;
+std::vector<vector3> m_vInBottom;
+std::vector<vector3> m_vOutBottom;
+float m_fSinValue = 0.f;
+float m_fCosValue = 0.f;
+
+for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
+{
+	// 360 / nSubs == arc; sin(arc * i);
+	m_vInTop.push_back(vector3(m_fSinValue * a_fInnerRadius, m_fAbHeight, m_fCosValue * a_fInnerRadius));
+	m_vOutTop.push_back(vector3(m_fSinValue * a_fOuterRadius, m_fAbHeight, m_fCosValue * a_fOuterRadius));
+	m_vInBottom.push_back(vector3(m_fSinValue * a_fInnerRadius, -m_fAbHeight, m_fCosValue * a_fInnerRadius));
+	m_vOutBottom.push_back(vector3(m_fSinValue * a_fOuterRadius, -m_fAbHeight, m_fCosValue * a_fOuterRadius));
+
+
+	m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
+	m_fCosValue = std::cos(((360 / (float)a_nSubdivisions) * i) * (PI / 180.f));
+}
+
+//TODO :  Link Top Quads Together
+for (int i = 0; i < m_vInTop.size() - 1; i++)
+{
+	AddQuad(m_vInTop[i + 1], m_vInTop[i], m_vOutTop[i + 1], m_vOutTop[i]); //Upper Loop
+	AddQuad(m_vInBottom[i], m_vInBottom[i + 1], m_vOutBottom[i], m_vOutBottom[i + 1]); //Lower Loop
+	AddQuad(m_vOutTop[i + 1], m_vOutTop[i], m_vOutBottom[i + 1], m_vOutBottom[i]);//Outside wall
+	AddQuad(m_vInTop[i], m_vInTop[i + 1], m_vInBottom[i], m_vInBottom[i + 1]); //Inside Wall
+}
+
+// Adding information about color
+CompleteMesh(a_v3Color);
+CompileOpenGL3X();
 }
 void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSubdivisionsA, int a_nSubdivisionsB, vector3 a_v3Color)
 {
@@ -439,7 +467,33 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+	// TODO : Inner Radius vs Outer Radius
+	/*
+		ok so like, obviously, the idea is to make a fake point at the mid between Outer and Inner, at each SubA(the abouty one).
+		Then, make a series of points around each of those central points for the SubBs ( the aroundy one).
+		So, this is probably really innefficient, but an easy out from there is a series of connected vectors
+		Use sin/cos from the origin to make the midpoints of each aroundy ring. push to a vector i(ex 7)
+		Use sin/cos from each midpoint to make the points of the abouty ring. push to a second vector. j(ex 7 * 9 = 63 points)
+		at this point the actual data in i is meaningless, just the iterator.
+		Connect i[j], i[j+1], i+1[j] i+1[j+1]
+		Job Done. Taurus easy peezy lemon squeezy
+	*/
+
+	float m_fPsuedoRadius = a_fOuterRadius - a_fInnerRadius;
+	std::vector<vector3> m_vRings;
+	float m_fSinValue = 0.f;
+	float m_fCosValue = 0.f;
+
+	for (int i = 0; i < a_nSubdivisionsA + 2; i++)
+	{
+		m_vRings.push_back(vector3(m_fSinValue * (m_fPsuedoRadius + a_fInnerRadius), 0, m_fCosValue * (m_fPsuedoRadius + a_fInnerRadius)));
+		m_fSinValue = std::sin(((360.f / (float)a_nSubdivisionsA) * i) * (PI / 180.f));
+		m_fCosValue = std::cos(((360 / (float)a_nSubdivisionsA) * i) * (PI / 180.f));
+	}
+
+	
+
 	// -------------------------------
 
 	// Adding information about color
