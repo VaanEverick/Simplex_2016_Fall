@@ -12,7 +12,8 @@ Date: 2017/05
 
 class Application
 {
-	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	String m_sProgrammer = "Student A - sta@rit.edu";
+	EntityManager* m_pEntityMngr = nullptr;
 private:
 	static ImGuiObject gui; //GUI object
 

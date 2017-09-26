@@ -276,7 +276,29 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	
+	//TODO : Determine |height|
+	float m_fAbHeight = a_fHeight / 2.0f;
+
+	//TODO : determine top point based on 1/2 height
+	vector3 m_vTop(0, m_fAbHeight, 0);
+	//TODO : determine center of base based on -1/2 height
+	vector3 m_vBot(0, -m_fAbHeight, 0);
+	//TODO : determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
+	std::vector<vector3> m_vSubbies;
+	float m_fSinValue = 0.f;
+	float m_fCosValue = 0.f;
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		 // 360 / nSubs == arc; sin(arc * i);
+		m_vSubbies.push_back(vector3(m_fSinValue, -m_fAbHeight, m_fCosValue));
+		m_fSinValue = 0;
+	}
+
+	//TODO : Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
+
+	//TODO : link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
+
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +322,21 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	
+	//TODO : Top center point by 1/2 height
+
+	//TODO : Bottom center point by 1/2 height
+
+	//TODO : top subdivisions by radius * sin(360 / sub) and radius * cos(360 / sub) and 1/2 height (x, z, y)
+
+	//TODO : Bottom subvisions by top subdivisions.y - height;
+
+	//TODO :  link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
+
+	//TODO : Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
+
+	//TODO : Link each quad of sub points together (AddQuad(TopSub i, TopSub i++, BotSub i, BotSub i++); i++;)
+
 	// -------------------------------
 
 	// Adding information about color
