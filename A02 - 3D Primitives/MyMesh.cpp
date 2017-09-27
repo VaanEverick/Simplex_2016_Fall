@@ -479,19 +479,35 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 		Connect i[j], i[j+1], i+1[j] i+1[j+1]
 		Job Done. Taurus easy peezy lemon squeezy
 	*/
+	float c = .5f* (a_fOuterRadius + a_fInnerRadius);
+	float a = .5 * (a_fOuterRadius - a_fInnerRadius);
+	float sepA = 360.f / (float)a_nSubdivisionsA;
+	float sepB = 360.f / (float)a_nSubdivisionsB;
+	float toRad = PI / 180.f;
 
-	float m_fPsuedoRadius = a_fOuterRadius - a_fInnerRadius;
-	std::vector<vector3> m_vRings;
-	float m_fSinValue = 0.f;
-	float m_fCosValue = 0.f;
+	std::vector<std::vector<vector3>> Rings;
+	std::vector<vector3> Points;
 
 	for (int i = 0; i < a_nSubdivisionsA + 2; i++)
 	{
-		m_vRings.push_back(vector3(m_fSinValue * (m_fPsuedoRadius + a_fInnerRadius), 0, m_fCosValue * (m_fPsuedoRadius + a_fInnerRadius)));
-		m_fSinValue = std::sin(((360.f / (float)a_nSubdivisionsA) * i) * (PI / 180.f));
-		m_fCosValue = std::cos(((360 / (float)a_nSubdivisionsA) * i) * (PI / 180.f));
+		Points.clear();
+		for (int j = 0; j < a_nSubdivisionsB + 2; j++)
+		{
+			float x = (c + a * cos(sepA * i * toRad)) * cos(sepB * j * toRad);
+			float y = (c + a * cos(sepA * i * toRad)) * sin(sepB * j * toRad);
+			float z = a * sin(sepA * i * toRad);
+			Points.push_back(vector3(x, y, z));
+		}
+		Rings.push_back(Points);
 	}
 
+	for (int i = 0; i < a_nSubdivisionsA; i++)
+	{
+		for (int j = 0; j < a_nSubdivisionsB; j++)
+		{
+			AddQuad(Rings[i][j], Rings[i][j+1], Rings[i+1][j], Rings[i+1][j+1]);
+		}
+	}
 	
 
 	// -------------------------------
@@ -511,14 +527,62 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions > 6)
+	if (a_nSubdivisions < 6)
 		a_nSubdivisions = 6;
 
 	Release();
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	// TODO : Sphere.
+	/*
+		Okay. Spheres. Sphere points should be easy. 
+		x = r * cos (theta) * sin(phi)
+		y = r * sin (theta) * sin(phi)
+		z = r * cos (phi);
+
+		theta 0 - 2PI. Longitude.
+		phi 0 - PI latitude; 
+
+		sphere has equal subdivisions longitutde and latitude.
+
+		*/
+
+	//vector of vectors of points forming each loop of the sphere
+	std::vector<std::vector<vector3>> Rings;
+	//vector of points in each loop
+	std::vector<vector3> Points;
+
+	//Determine ratio in which theta increases
+	float theta = 360.f / (float)a_nSubdivisions;
+	theta = theta * (PI / 180);
+
+	//Phi spans half the arc that theta does, so it either has a ratio of 1/2 or 2x. 
+	float phi = theta / 2.f;
+
+
+	for (int i = 0; i < a_nSubdivisions + 2; i++)
+	{
+		Points.clear();
+		for (int j = 0; j < a_nSubdivisions + 2; j++)
+		{
+			float x = a_fRadius * cos(theta * i) * sin(phi * j);
+			float y = a_fRadius * sin(theta * i) * sin(phi * j);
+			float z = a_fRadius * cos(phi * j);
+			Points.push_back(vector3(x, y, z));
+		}
+		Rings.push_back(Points);
+	}
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		for (int j = 0; j < a_nSubdivisions; j++)
+		{
+			AddQuad(Rings[i][j], Rings[i][j + 1], Rings[i + 1][j], Rings[i + 1][j + 1]);
+		}
+	}
+
+
 	// -------------------------------
 
 	// Adding information about color
