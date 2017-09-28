@@ -273,7 +273,7 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 		a_nSubdivisions = 360;
 
 	Release();
-Init();
+	Init();
 
 
 // Determine |height|
@@ -287,29 +287,35 @@ vector3 m_vBot(0, -m_fAbHeight, 0);
 
 // determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
 std::vector<vector3> m_vSubbies;
+float m_fTrueSubs = a_nSubdivisions - 1;
 float m_fSinValue = 0.f;
-float m_fCosValue = 0.f;
+float m_fCosValue = 1.f;
 
-for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
+for (int i = 0; i < a_nSubdivisions; i++) 
 {
 	// 360 / nSubs == arc; sin(arc * i);
-	m_vSubbies.push_back(vector3(m_fSinValue * a_fRadius, -m_fAbHeight, m_fCosValue * a_fRadius));
 	m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
 	m_fCosValue = std::cos(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
+
+	//Push each point into the data array
+	m_vSubbies.push_back(vector3(m_fSinValue * a_fRadius, -m_fAbHeight, m_fCosValue * a_fRadius));
+	
 }
 
 // Link each pair of sub points together with the base point (AddTri(sub i, sub i++, base); i++;)
-for (int i = 0; i < m_vSubbies.size() - 1; i++)
+for (int i = 0; i < m_fTrueSubs; i++)
 {
 	//AddTri(m_vSubbies[i], m_vSubbies[i++], m_vBot);
 	AddTri(m_vSubbies[i + 1], m_vSubbies[i], m_vBot);
-}
-// link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
-for (int i = 0; i < m_vSubbies.size() - 1; i++)
-{
 	AddTri(m_vSubbies[i], m_vSubbies[i + 1], m_vTop);
-
 }
+
+//Link first point to last point (Top)
+AddTri(m_vSubbies[0], m_vSubbies[m_fTrueSubs], m_vBot);
+
+//Link first point to last point (Top)
+AddTri(m_vSubbies[m_fTrueSubs], m_vSubbies[0], m_vTop);
+
 // -------------------------------
 
 // Adding information about color
@@ -344,38 +350,33 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	// determine each subdivision point based on radius * sin(360 / sub) and radius * cos(360 / sub) and -1/2 height (x, z, y)
 	std::vector<vector3> m_vTopShelf;
 	std::vector<vector3> m_vBottomShelf;
+	float m_fTrueSubs = a_nSubdivisions - 1;
 	float m_fSinValue = 0.f;
-	float m_fCosValue = 0.f;
+	float m_fCosValue = 1.f;
 
-	for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
+	for (int i = 0; i < a_nSubdivisions; i++) 
 	{
 		// 360 / nSubs == arc; sin(arc * i);
-		m_vTopShelf.push_back(vector3(m_fSinValue * a_fRadius, m_fAbHeight, m_fCosValue * a_fRadius));
 		m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
 		m_fCosValue = std::cos(((360 / (float)a_nSubdivisions) * i) * (PI / 180.f));
-	}
 
-
-	//TODO : Bottom subvisions by top subdivisions.y - height;
-	for (int i = 0; i < a_nSubdivisions + 2; i++)
-	{
+		m_vTopShelf.push_back(vector3(m_fSinValue * a_fRadius, m_fAbHeight, m_fCosValue * a_fRadius));
 		m_vBottomShelf.push_back(m_vTopShelf[i] - vector3(0, a_fHeight, 0));
 	}
+
+
 	//TODO :  link each pair of sub points together with the top point (AddTri(sub i, sub i++, top); i++;)
 	for (int i = 0; i < m_vTopShelf.size() - 1; i++)
 	{
 		AddTri(m_vTopShelf[i], m_vTopShelf[i + 1], m_vTop);
 		AddTri(m_vBottomShelf[i + 1], m_vBottomShelf[i], m_vBot);
-	}
-	
-	//TODO : Link each quad of sub points together (AddQuad(TopSub i, TopSub i++, BotSub i, BotSub i++); i++;)
-	for (int i = 0; i < m_vTopShelf.size() - 1; i++)
-	{
 		AddQuad(m_vBottomShelf[i], m_vBottomShelf[i + 1], m_vTopShelf[i], m_vTopShelf[i + 1]);
 	}
 
-	
-
+	//Link first points to last points
+	AddTri(m_vTopShelf[m_fTrueSubs], m_vTopShelf[0], m_vTop);
+	AddTri(m_vBottomShelf[0], m_vBottomShelf[m_fTrueSubs], m_vBot);
+	AddQuad( m_vBottomShelf[m_fTrueSubs], m_vBottomShelf[0],  m_vTopShelf[m_fTrueSubs], m_vTopShelf[0] );
 
 	// -------------------------------
 
@@ -385,22 +386,17 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 }
 void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fHeight, int a_nSubdivisions, vector3 a_v3Color)
 {
-	if (a_fOuterRadius < 0.01f)
-		a_fOuterRadius = 0.01f;
+	if (a_fOuterRadius < 0.01f) { a_fOuterRadius = 0.01f; }
 
-	if (a_fInnerRadius < 0.005f)
-		a_fInnerRadius = 0.005f;
+	if (a_fInnerRadius < 0.005f) { a_fInnerRadius = 0.005f; }
 
-	if (a_fInnerRadius > a_fOuterRadius)
-		std::swap(a_fInnerRadius, a_fOuterRadius);
+	if (a_fInnerRadius > a_fOuterRadius) { std::swap(a_fInnerRadius, a_fOuterRadius); }
 
-	if (a_fHeight < 0.01f)
-a_fHeight = 0.01f;
+	if (a_fHeight < 0.01f) { a_fHeight = 0.01f; }
 
-if (a_nSubdivisions < 3)
-	a_nSubdivisions = 3;
-if (a_nSubdivisions > 360)
-a_nSubdivisions = 360;
+	if (a_nSubdivisions < 3) { a_nSubdivisions = 3; }
+
+	if (a_nSubdivisions > 360) { a_nSubdivisions = 360; }
 
 Release();
 Init();
@@ -413,20 +409,20 @@ std::vector<vector3> m_vInTop;
 std::vector<vector3> m_vOutTop;
 std::vector<vector3> m_vInBottom;
 std::vector<vector3> m_vOutBottom;
+float m_fTrueSubs = a_nSubdivisions - 1;
 float m_fSinValue = 0.f;
-float m_fCosValue = 0.f;
+float m_fCosValue = 1.f;
 
-for (int i = 0; i < a_nSubdivisions + 2; i++) //TODO : Figure out exactly why +2 is needed. Will see if is same for all shapes. It should be, but since when has should mattered?
+for (int i = 0; i < a_nSubdivisions; i++) 
 {
 	// 360 / nSubs == arc; sin(arc * i);
+	m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
+	m_fCosValue = std::cos(((360 / (float)a_nSubdivisions) * i) * (PI / 180.f));
+
 	m_vInTop.push_back(vector3(m_fSinValue * a_fInnerRadius, m_fAbHeight, m_fCosValue * a_fInnerRadius));
 	m_vOutTop.push_back(vector3(m_fSinValue * a_fOuterRadius, m_fAbHeight, m_fCosValue * a_fOuterRadius));
 	m_vInBottom.push_back(vector3(m_fSinValue * a_fInnerRadius, -m_fAbHeight, m_fCosValue * a_fInnerRadius));
 	m_vOutBottom.push_back(vector3(m_fSinValue * a_fOuterRadius, -m_fAbHeight, m_fCosValue * a_fOuterRadius));
-
-
-	m_fSinValue = std::sin(((360.f / (float)a_nSubdivisions) * i) * (PI / 180.f));
-	m_fCosValue = std::cos(((360 / (float)a_nSubdivisions) * i) * (PI / 180.f));
 }
 
 //TODO :  Link Top Quads Together
@@ -438,60 +434,58 @@ for (int i = 0; i < m_vInTop.size() - 1; i++)
 	AddQuad(m_vInTop[i], m_vInTop[i + 1], m_vInBottom[i], m_vInBottom[i + 1]); //Inside Wall
 }
 
+//Link first points to last points
+AddQuad(m_vInTop[0], m_vInTop[m_fTrueSubs], m_vOutTop[0], m_vOutTop[m_fTrueSubs]); //Upper Loop
+AddQuad(m_vInBottom[m_fTrueSubs], m_vInBottom[0], m_vOutBottom[m_fTrueSubs], m_vOutBottom[0]); //Lower Loop
+AddQuad(m_vOutTop[0], m_vOutTop[m_fTrueSubs], m_vOutBottom[0], m_vOutBottom[m_fTrueSubs]);//Outside wall
+AddQuad(m_vInTop[m_fTrueSubs], m_vInTop[0], m_vInBottom[m_fTrueSubs], m_vInBottom[0]); //Inside Wall
+
 // Adding information about color
 CompleteMesh(a_v3Color);
 CompileOpenGL3X();
 }
 void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSubdivisionsA, int a_nSubdivisionsB, vector3 a_v3Color)
 {
-	if (a_fOuterRadius < 0.01f)
-		a_fOuterRadius = 0.01f;
+	if (a_fOuterRadius < 0.01f) { a_fOuterRadius = 0.01f; }
 
-	if (a_fInnerRadius < 0.005f)
-		a_fInnerRadius = 0.005f;
+	if (a_fInnerRadius < 0.005f) { a_fInnerRadius = 0.005f; }
 
-	if (a_fInnerRadius > a_fOuterRadius)
-		std::swap(a_fInnerRadius, a_fOuterRadius);
+	if (a_fInnerRadius > a_fOuterRadius) { std::swap(a_fInnerRadius, a_fOuterRadius); }
 
-	if (a_nSubdivisionsA < 3)
-		a_nSubdivisionsA = 3;
-	if (a_nSubdivisionsA > 360)
-		a_nSubdivisionsA = 360;
+	if (a_nSubdivisionsA < 3) { a_nSubdivisionsA = 3; }
 
-	if (a_nSubdivisionsB < 3)
-		a_nSubdivisionsB = 3;
-	if (a_nSubdivisionsB > 360)
-		a_nSubdivisionsB = 360;
+	if (a_nSubdivisionsA > 360) { a_nSubdivisionsA = 360; }
+
+	if (a_nSubdivisionsB < 3) { a_nSubdivisionsB = 3; }
+
+	if (a_nSubdivisionsB > 360) { a_nSubdivisionsB = 360; }
 
 	Release();
 	Init();
 
-	// Replace this with your code
-
-	// TODO : Inner Radius vs Outer Radius
 	/*
-		ok so like, obviously, the idea is to make a fake point at the mid between Outer and Inner, at each SubA(the abouty one).
-		Then, make a series of points around each of those central points for the SubBs ( the aroundy one).
-		So, this is probably really innefficient, but an easy out from there is a series of connected vectors
-		Use sin/cos from the origin to make the midpoints of each aroundy ring. push to a vector i(ex 7)
-		Use sin/cos from each midpoint to make the points of the abouty ring. push to a second vector. j(ex 7 * 9 = 63 points)
-		at this point the actual data in i is meaningless, just the iterator.
-		Connect i[j], i[j+1], i+1[j] i+1[j+1]
-		Job Done. Taurus easy peezy lemon squeezy
+		Torus is basically just a circle folded in on itself in the middle, so the equation is pretty close to that of a circle
+		c - 1/2 of the sum of the two radii
+		a - 1/2 of the difference of two radii
+		sepA - arc length for the outer radii subdivisions
+		sepB - arc length for the inner radii subdivisions
+		toRad - because c++ is too good for degrees
+		Easy Peezy Lemon Squeezy
+		(They said it would be difficult difficult lemon difficult)
 	*/
-	float c = .5f* (a_fOuterRadius + a_fInnerRadius);
-	float a = .5 * (a_fOuterRadius - a_fInnerRadius);
+	float c = .5f * (a_fOuterRadius + a_fInnerRadius);
+	float a = .5f * (a_fOuterRadius - a_fInnerRadius);
 	float sepA = 360.f / (float)a_nSubdivisionsA;
 	float sepB = 360.f / (float)a_nSubdivisionsB;
 	float toRad = PI / 180.f;
 
-	std::vector<std::vector<vector3>> Rings;
-	std::vector<vector3> Points;
+	std::vector<std::vector<vector3>> Rings; //An array holding arrays holding each Ring (the around points at each subdivision)
+	std::vector<vector3> Points; //an array holding all the points that make up a Ring
 
-	for (int i = 0; i < a_nSubdivisionsA + 2; i++)
+	for (int i = 0; i < a_nSubdivisionsA; i++)
 	{
 		Points.clear();
-		for (int j = 0; j < a_nSubdivisionsB + 2; j++)
+		for (int j = 0; j < a_nSubdivisionsB; j++)
 		{
 			float x = (c + a * cos(sepA * i * toRad)) * cos(sepB * j * toRad);
 			float y = (c + a * cos(sepA * i * toRad)) * sin(sepB * j * toRad);
@@ -501,14 +495,17 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 		Rings.push_back(Points);
 	}
 
-	for (int i = 0; i < a_nSubdivisionsA; i++)
+	for (int i = 0; i < a_nSubdivisionsA -1; i++)
 	{
-		for (int j = 0; j < a_nSubdivisionsB; j++)
+		for (int j = 0; j < a_nSubdivisionsB - 1; j++)
 		{
 			AddQuad(Rings[i][j], Rings[i][j+1], Rings[i+1][j], Rings[i+1][j+1]);
+			AddQuad(Rings[a_nSubdivisionsA - 1][j], Rings[a_nSubdivisionsA - 1][j + 1], Rings[0][j], Rings[0][j + 1]);
 		}
+		AddQuad(Rings[i][a_nSubdivisionsB - 1], Rings[i][0], Rings[i + 1][a_nSubdivisionsB - 1], Rings[i + 1][0]);
 	}
 	
+	AddQuad(Rings[0][0], Rings[0][a_nSubdivisionsB - 1], Rings[a_nSubdivisionsA -1][0], Rings[a_nSubdivisionsA -1][a_nSubdivisionsB -1]);
 
 	// -------------------------------
 
@@ -518,8 +515,7 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 }
 void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Color)
 {
-	if (a_fRadius < 0.01f)
-		a_fRadius = 0.01f;
+	if (a_fRadius < 0.01f) { a_fRadius = 0.01f; }
 
 	//Sets minimum and maximum of subdivisions
 	if (a_nSubdivisions < 1)
@@ -527,16 +523,13 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		GenerateCube(a_fRadius * 2.0f, a_v3Color);
 		return;
 	}
-	if (a_nSubdivisions < 6)
-		a_nSubdivisions = 6;
+	if (a_nSubdivisions < 6) { a_nSubdivisions = 6; }
 
 	Release();
 	Init();
 
-	// Replace this with your code
-	// TODO : Sphere.
 	/*
-		Okay. Spheres. Sphere points should be easy. 
+		Okay. Spheres. 
 		x = r * cos (theta) * sin(phi)
 		y = r * sin (theta) * sin(phi)
 		z = r * cos (phi);
@@ -557,10 +550,10 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	float theta = 360.f / (float)a_nSubdivisions;
 	theta = theta * (PI / 180);
 
-	//Phi spans half the arc that theta does, so it either has a ratio of 1/2 or 2x. 
+	//Phi spans half the arc that theta does, so it either has a ratio of 1/2 theta. 
 	float phi = theta / 2.f;
 
-
+	//Generate Points
 	for (int i = 0; i < a_nSubdivisions + 2; i++)
 	{
 		Points.clear();
@@ -574,14 +567,19 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		Rings.push_back(Points);
 	}
 
+	//Link points together
 	for (int i = 0; i < a_nSubdivisions; i++)
 	{
 		for (int j = 0; j < a_nSubdivisions; j++)
 		{
 			AddQuad(Rings[i][j], Rings[i][j + 1], Rings[i + 1][j], Rings[i + 1][j + 1]);
+			AddQuad(Rings[a_nSubdivisions - 1][j], Rings[a_nSubdivisions - 1][j + 1], Rings[0][j], Rings[0][j + 1]);
 		}
+		AddQuad(Rings[i][a_nSubdivisions - 1], Rings[i][0], Rings[i + 1][a_nSubdivisions - 1], Rings[i + 1][0]);
 	}
 
+	//Fill the end quad
+	AddQuad(Rings[0][0], Rings[0][a_nSubdivisions - 1], Rings[a_nSubdivisions - 1][0], Rings[a_nSubdivisions - 1][a_nSubdivisions - 1]);
 
 	// -------------------------------
 
