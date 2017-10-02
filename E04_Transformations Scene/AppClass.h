@@ -15,6 +15,8 @@ Date: 2017/05
 class Application
 {
 	MyMesh* m_pMesh = nullptr;
+	std::vector<MyMesh*> m_pMeshes;
+	
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 
 private:
@@ -38,6 +40,12 @@ private:
 	Simplex::CameraManager* m_pCameraMngr = nullptr; //Singleton for the camera manager
 	ControllerInput* m_pController[8]; //Controller
 	uint m_uActCont = 0; //Active Controller of the Application
+
+	std::set<int> locs;
+	float m_fSinValue;
+	float m_fCosValue;
+	float m_fRadIterator;
+	vector2 m_vOrigin;
 
 public:
 #pragma region Constructor / Run / Destructor

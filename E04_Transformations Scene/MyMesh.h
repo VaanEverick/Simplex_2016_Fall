@@ -93,6 +93,12 @@ public:
 	*/
 	void CompileOpenGL3X(void);
 	/*
+	
+	
+	*/
+	void CompileInstance(void);
+
+	/*
 	USAGE: Renders the mesh on the specified position by the
 	provided camera view and projection
 	ARGUMENTS:

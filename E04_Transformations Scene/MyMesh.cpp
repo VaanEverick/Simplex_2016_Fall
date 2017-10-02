@@ -117,6 +117,12 @@ void MyMesh::CompileOpenGL3X(void)
 
 	glBindVertexArray(0); // Unbind VAO
 }
+
+void MyMesh::CompileInstance(void)
+{
+
+}
+
 void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 {
 	// Use the buffer and shader
