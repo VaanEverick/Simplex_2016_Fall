@@ -33,22 +33,6 @@ void Application::Display(void)
 
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix(); //view Matrix
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix(); //Projection Matrix
-	
-	//Matrix of the model, its position in the world
-	/* //Sol 1
-	float fStartPos = -5.0f;
-	float fEndPos = 5.0f;
-	static DWORD dStartTime = GetTickCount();
-	DWORD dCurrentTime = GetTickCount();
-	DWORD dTime = dCurrentTime - dStartTime;
-	float fTime = dTime / 1000.0f;
-	float fTotalAnimationTime = 10.0f;
-	//fTotal -> 1.0f
-	//fTime -> x
-	float fPercentage = fTime  / fTotalAnimationTime;
-	float fCurrentPos = glm::lerp(fStartPos, fEndPos, fPercentage);
-	matrix4 m4Model = glm::translate(IDENTITY_M4, vector3(fCurrentPos, 0.0f, 0.0f));
-	*/
 
 	//Sol2
 	//Get a timer
