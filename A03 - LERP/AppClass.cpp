@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Christopher Banks - cdb6474@g.rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -29,6 +29,7 @@ void Application::InitVariables(void)
 
 	//creating a color using the spectrum 
 	uint uColor = 650; //650 is Red
+	
 	//prevent division by 0
 	float decrements = 250.0f / (m_uOrbits > 1? static_cast<float>(m_uOrbits - 1) : 1.0f); //decrement until you get to 400 (which is violet)
 	/*
@@ -38,9 +39,27 @@ void Application::InitVariables(void)
 	for (uint i = uSides; i < m_uOrbits + uSides; i++)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
-		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager
+		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager //HERE : vector storing each orbit. This is our loop
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
+	}
+
+	for (int i = 0; i < m_uOrbits; i++)
+	{
+		spheres.push_back(mySphere());
+		spheres[i].NumStops = i + 3;
+		float fSin = 0;
+		float fCos = 1;
+		float SubSpace = (360.f / (float)spheres[i].NumStops) * (PI / 180.f); //divisions for each torus
+		spheres[i].fSize += (.5f * i);
+
+		for (int j = 0; j < spheres[i].NumStops; j++)
+		{
+			fSin = std::sin(SubSpace * j);
+			fCos = std::cos(SubSpace * j);
+			spheres[i].tracePoints.push_back(vector3(fSize * fSin, fSize * fCos, 0));
+		}
+
 	}
 }
 void Application::Update(void)
@@ -71,10 +90,29 @@ void Application::Display(void)
 	for (uint i = 0; i < m_uOrbits; ++i)
 	{
 		m_pMeshMngr->AddMeshToRenderList(m_shapeList[i], glm::rotate(m4Offset, 90.0f, AXIS_X));
+		
+		//calculate the current position of the spheres
 
-		//calculate the current position
-		vector3 v3CurrentPos = ZERO_V3;
-		matrix4 m4Model = glm::translate(m4Offset, v3CurrentPos);
+		spheres[i].v3Start = spheres[i].tracePoints[spheres[i].route];
+		spheres[i].v3End = spheres[i].tracePoints[(spheres[i].route + 1) % spheres[i].tracePoints.size()];
+
+		float fTimeBetweenStops = 1.125f;
+		static DWORD startTime = GetTickCount();
+		DWORD currentTime = GetTickCount();
+		float fCurrentTime = (currentTime - startTime) / 1000.f;
+
+		float fPercentage = MapValue(fCurrentTime, 0.f, fTimeBetweenStops, 0.0f, 1.0f);
+
+		spheres[i].v3CurrentPos = glm::lerp(spheres[i].v3Start, spheres[i].v3End, fPercentage);
+	
+		matrix4 m4Model = glm::translate(m4Offset, spheres[i].v3CurrentPos);
+
+		if (fCurrentTime >= fTimeBetweenStops)
+		{
+			spheres[i].route++;
+			spheres[i].route %= spheres[i].tracePoints.size();
+			startTime = GetTickCount();
+		}
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
@@ -97,3 +135,4 @@ void Application::Release(void)
 	//release GUI
 	ShutdownGUI();
 }
+

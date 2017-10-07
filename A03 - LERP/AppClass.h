@@ -18,11 +18,26 @@ Date: 2017/05
 
 class Application
 {
+
+	struct mySphere
+	{
+		vector3 v3CurrentPos;
+		vector3 v3Start;
+		vector3 v3End;
+		uint route;
+		uint NumStops;
+
+		std::vector<vector3> tracePoints;
+		float fSize = 1.0f;
+	};
+
 	uint m_uOrbits = 0; //number of shapes starting at 3 and increasing in sides
 	std::vector<uint> m_shapeList; //shape index for circles
+	std::vector<mySphere> spheres;
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
 	
 private:
+	
 	static ImGuiObject gui; //GUI object
 	
 	uint m_uRenderCallCount = 0; //count of render calls per frame
