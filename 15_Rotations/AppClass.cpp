@@ -39,17 +39,13 @@ void Application::Display(void)
 	float fTimer = m_pSystem->GetTimeSinceStart(uClock);
 
 	//calculate the current position
-	matrix4 m4Rotation = glm::rotate(IDENTITY_M4, fTimer * 60.0f, vector3(0.0f, 0.0f, 1.0f));
-	matrix4 m4Model;
-	for (uint i = 0; i < 2500; ++i)
-		m4Model = m4Rotation * glm::translate(IDENTITY_M4, vector3(2.5f, 0.0f, 0.0f)) * glm::transpose(m4Rotation);
+	//m_v3Rotation = vector3(0.f, 0.f, 0.f);
+	//Quat.w != mat4.w
 	
-	/*
-	//extra part, how to rotate around a point (in this case the base of the cone)
-	matrix4 m4Translation = glm::translate(IDENTITY_M4, vector3(0.0f, 0.5f, 0.0f));
-	matrix4 m4TransInverse = glm::translate(IDENTITY_M4, vector3(0.0f, -0.5f, 0.0f));
-	m4Model = m4TransInverse * m4Rotation * m4Translation;
-	*/
+	quaternion q1 = glm::angleAxis(45.f, vector3(1.f, 0.f, 0.f));
+	matrix4 m4Model; 
+	m4Model = glm::toMat4(q1);
+
 
 	// render the object
 	m_pMesh->Render(m4Projection, m4View, m4Model);

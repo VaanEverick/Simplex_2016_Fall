@@ -57,7 +57,7 @@ void Application::InitVariables(void)
 		{
 			fSin = std::sin(SubSpace * j);
 			fCos = std::cos(SubSpace * j);
-			spheres[i].tracePoints.push_back(vector3(fSize * fSin, fSize * fCos, 0));
+			spheres[i].tracePoints.push_back(vector3(spheres[i].fSize * fSin, spheres[i].fSize * fCos, 0));
 		}
 
 	}
