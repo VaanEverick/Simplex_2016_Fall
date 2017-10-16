@@ -39,27 +39,28 @@ void Application::InitVariables(void)
 	for (uint i = uSides; i < m_uOrbits + uSides; i++)
 	{
 		vector3 v3Color = WaveLengthToRGB(uColor); //calculate color based on wavelength
-		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager //HERE : vector storing each orbit. This is our loop
+		m_shapeList.push_back(m_pMeshMngr->GenerateTorus(fSize, fSize - 0.1f, 3, i, v3Color)); //generate a custom torus and add it to the meshmanager 
 		fSize += 0.5f; //increment the size for the next orbit
 		uColor -= static_cast<uint>(decrements); //decrease the wavelength
 	}
 
+	//Don't see anyway to get the torii, the method it points to is never called (very mysterious)
+	//Recreating orbits dynamically. Not really following the routes, but it does follow the routes. 
 	for (int i = 0; i < m_uOrbits; i++)
 	{
 		spheres.push_back(mySphere());
-		spheres[i].NumStops = i + 3;
+		spheres[i].NumStops = i + 3; //Minimum route size is three, a triangle
 		float fSin = 0;
 		float fCos = 1;
 		float SubSpace = (360.f / (float)spheres[i].NumStops) * (PI / 180.f); //divisions for each torus
-		spheres[i].fSize += (.5f * i);
+		spheres[i].fSize += (.5f * i); //make each orbit larger
 
 		for (int j = 0; j < spheres[i].NumStops; j++)
 		{
-			fSin = std::sin(SubSpace * j);
-			fCos = std::cos(SubSpace * j);
+			fSin = std::sin((SubSpace * j) + ((PI / 180.f) * 3));
+			fCos = std::cos((SubSpace * j) + ((PI / 180.f) * 3));
 			spheres[i].tracePoints.push_back(vector3(spheres[i].fSize * fSin, spheres[i].fSize * fCos, 0));
 		}
-
 	}
 }
 void Application::Update(void)
@@ -84,7 +85,7 @@ void Application::Display(void)
 	/*
 		The following offset will orient the orbits as in the demo, start without it to make your life easier.
 	*/
-	//m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
+	m4Offset = glm::rotate(IDENTITY_M4, 90.0f, AXIS_Z);
 
 	// draw a shapes
 	for (uint i = 0; i < m_uOrbits; ++i)
@@ -93,26 +94,37 @@ void Application::Display(void)
 		
 		//calculate the current position of the spheres
 
+		//Get the start and end nodes of each route segment route the route number, loop back to 0 at end
 		spheres[i].v3Start = spheres[i].tracePoints[spheres[i].route];
 		spheres[i].v3End = spheres[i].tracePoints[(spheres[i].route + 1) % spheres[i].tracePoints.size()];
 
-		float fTimeBetweenStops = 1.125f;
+		//get time values independent of this program, to maintain a constant increment across any machine
+		float fTimeBetweenStops = .5f;
 		static DWORD startTime = GetTickCount();
 		DWORD currentTime = GetTickCount();
 		float fCurrentTime = (currentTime - startTime) / 1000.f;
 
+		//update how far along each route each sphere is
 		float fPercentage = MapValue(fCurrentTime, 0.f, fTimeBetweenStops, 0.0f, 1.0f);
 
+		//give each sphere an updated position along each node-node route
 		spheres[i].v3CurrentPos = glm::lerp(spheres[i].v3Start, spheres[i].v3End, fPercentage);
-	
-		matrix4 m4Model = glm::translate(m4Offset, spheres[i].v3CurrentPos);
+		
+		//translate the sphere model along its route
+		matrix4 m4Model = glm::translate(IDENTITY_M4, spheres[i].v3CurrentPos);
 
+		//move along to the next segment once the timer passes the limit 
+		//overall time (reset at each stop) is comparative to the percentage along each segment
 		if (fCurrentTime >= fTimeBetweenStops)
 		{
-			spheres[i].route++;
-			spheres[i].route %= spheres[i].tracePoints.size();
+			for (int k = 0; k < spheres.size(); k++)
+			{
+				spheres[k].route++;
+				spheres[k].route %= spheres[k].tracePoints.size();
+			}
 			startTime = GetTickCount();
 		}
+
 
 		//draw spheres
 		m_pMeshMngr->AddSphereToRenderList(m4Model * glm::scale(vector3(0.1)), C_WHITE);
