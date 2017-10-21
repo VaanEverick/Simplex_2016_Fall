@@ -14,6 +14,7 @@ void Application::InitVariables(void)
 	//init the mesh
 	m_pMesh = new MyMesh();
 	m_pMesh->GenerateCone(0.5f, 1.0f, 7, C_RED);
+
 }
 void Application::Update(void)
 {
@@ -39,12 +40,9 @@ void Application::Display(void)
 	float fTimer = m_pSystem->GetTimeSinceStart(uClock);
 
 	//calculate the current position
-	//m_v3Rotation = vector3(0.f, 0.f, 0.f);
-	//Quat.w != mat4.w
 	
-	quaternion q1 = glm::angleAxis(45.f, vector3(1.f, 0.f, 0.f));
 	matrix4 m4Model; 
-	m4Model = glm::toMat4(q1);
+	m4Model = glm::toMat4(m_qOrientation);
 
 
 	// render the object
