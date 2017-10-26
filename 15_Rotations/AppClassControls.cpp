@@ -85,7 +85,7 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 	switch (a_event.key.code)
 	{
 	default: break;
-	case sf::Keyboard::Escape:
+	case sf::Keyboard::Tilde:
 		m_bRunning = false;
 		break;
 	case sf::Keyboard::F1:

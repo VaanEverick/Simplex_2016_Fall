@@ -56,16 +56,16 @@ void Application::Display(void)
 		m_pCamera->ResetCamera();
 		break;
 	case 2:
-		m_pCamera->ResetCamera();
+		m_pCamera->SetPerspective(false);
 		break;
 	case 3:
-		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUp(vector3(25,0,0), vector3(0,0,-1), -AXIS_Z);
 		break;
 	case 4:
-		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUp(vector3(0,0,-20), vector3(), AXIS_Y);
 		break;
 	case 5:
-		m_pCamera->ResetCamera();
+		m_pCamera->SetPositionTargetAndUp(vector3(0, 0, -10), vector3(), AXIS_Y);;
 		break;
 	case 6:
 		m_pCamera->ResetCamera();

@@ -2,7 +2,7 @@
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Christopher Banks - cdb6474@g.rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -43,7 +43,7 @@ void Application::Display(void)
 	
 	matrix4 m4Model; 
 	m4Model = glm::toMat4(m_qOrientation);
-
+	
 
 	// render the object
 	m_pMesh->Render(m4Projection, m4View, m4Model);
@@ -57,7 +57,7 @@ void Application::Display(void)
 	//print the time on the screen
 #pragma region Debugging Information
 	//Print info on the screen
-	uint nEmptyLines = 21;
+	uint nEmptyLines = 20;
 	for (uint i = 0; i < nEmptyLines; ++i)
 		m_pMeshMngr->PrintLine("");//Add a line on top
 								   //m_pMeshMngr->Print("						");
@@ -69,6 +69,7 @@ void Application::Display(void)
 
 	m_pMeshMngr->Print("Time: ");
 	m_pMeshMngr->PrintLine(std::to_string(fTimer), C_RED);
+
 #pragma endregion
 		
 	//render list call
