@@ -51,6 +51,10 @@ void Application::Display(void)
 	//clear the render list
 	m_pMeshMngr->ClearRenderList();
 
+	matrix4 m4Projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, .01f, 1000.f);
+	matrix4 m4View = glm::lookAt(vector3(0, 0, 30) + m_v3CameraPosition * m_v3CameraRotation, vector3(0, 0, 0), AXIS_Y);
+	matrix4 m4Model = ToMatrix4(m_qArcBall);
+
 	//Render the list of MyMeshManager
 	m_pMyMeshMngr->Render();
 	
