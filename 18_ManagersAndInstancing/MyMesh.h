@@ -159,6 +159,8 @@ public:
 	OUTPUT: ---
 	*/
 	void AddQuad(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTopLeft, vector3 a_vTopRight);
+
+	std::vector<vector3> GetVertexList();
 #pragma region 3D Primitives
 	/*
 	USAGE: Generates a cube
