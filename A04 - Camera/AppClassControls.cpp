@@ -369,7 +369,10 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 	//Change the Yaw and the Pitch of the camera
+	m_pCamera->SetYawPitchRoll(vector3(-fAngleY * 3.5f, -fAngleX * 3.5f, 0.f));
+
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
+
 }
 //Keyboard
 void Application::ProcessKeyboard(void)
@@ -386,36 +389,33 @@ void Application::ProcessKeyboard(void)
 	if (fMultiplier)
 		fSpeed *= 5.0f;
 
+
+	//Handle Directional Movement
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
-		m_pCameraMngr->MoveForward(fSpeed);
-		m_v3CameraPosition.z -= fSpeed;
+		m_pCamera->SetPosition(m_pCamera->GetPosition() + m_pCamera->GetDirection() * fSpeed); //increase camera position by current position + the direction vector * speed;
+		m_pCamera->SetTarget(m_pCamera->GetTarget() + m_pCamera->GetDirection() * fSpeed); //Update our target to match
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
-		m_pCameraMngr->MoveForward(-fSpeed);
-		m_v3CameraPosition.z += fSpeed;
+		m_pCamera->SetPosition(m_pCamera->GetPosition() + m_pCamera->GetDirection() * -fSpeed);
+		m_pCamera->SetTarget(m_pCamera->GetTarget() + m_pCamera->GetDirection() * -fSpeed);
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
-		m_pCameraMngr->MoveSideways(-fSpeed);
-		m_v3CameraPosition.x -= fSpeed;
+		m_pCamera->SetPosition(m_pCamera->GetPosition() + m_pCamera->GetRight() * -fSpeed);
+		m_pCamera->SetTarget(m_pCamera->GetTarget() + m_pCamera->GetRight() * -fSpeed);
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
-		m_pCameraMngr->MoveSideways(fSpeed);
-		m_v3CameraPosition.x += fSpeed;
+		m_pCamera->SetPosition(m_pCamera->GetPosition() + m_pCamera->GetRight() * fSpeed);
+		m_pCamera->SetTarget(m_pCamera->GetTarget() + m_pCamera->GetRight() * fSpeed);
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-	{
-		m_pCameraMngr->MoveVertical(-fSpeed);
-		m_v3CameraPosition.y -= fSpeed;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-	{
-		m_pCameraMngr->MoveVertical(fSpeed);
-		m_v3CameraPosition.y += fSpeed;
-	}
+
+	//update our direction 
+	m_pCamera->SetDirection(glm::normalize(m_pCamera->GetTarget() - m_pCamera->GetPosition()));
+	m_pCamera->SetRight(glm::normalize(glm::cross(m_pCamera->GetDirection(), m_pCamera->GetUp())));
+	
 #pragma endregion
 }
 //Joystick

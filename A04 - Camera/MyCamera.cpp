@@ -20,10 +20,38 @@ void Simplex::MyCamera::SetHorizontalPlanes(vector2 a_v2Horizontal) { m_v2Horizo
 
 void Simplex::MyCamera::SetVerticalPlanes(vector2 a_v2Vertical) { m_v2Vertical = a_v2Vertical; }
 
+void MyCamera::SetDirection(vector3 a_v3Direction) { m_v3Direction = a_v3Direction; }
+
+void MyCamera::SetRight(vector3 a_v3Right) { m_v3Right = a_v3Right; }
+
+void MyCamera::SetYawPitchRoll(vector3 a_v3YawPitchRoll)
+{
+	m_v3YawPitchRoll += a_v3YawPitchRoll;
+	m_v3Direction.y = sin(glm::radians(m_v3YawPitchRoll.y)) * sin(glm::radians(m_v3YawPitchRoll.x));
+	m_v3Direction.z = cos(glm::radians(m_v3YawPitchRoll.y));
+	m_v3Direction.x = cos(glm::radians(m_v3YawPitchRoll.y)) * sin(glm::radians(m_v3YawPitchRoll.x));
+	m_v3Direction = glm::normalize(m_v3Direction);
+
+	SetTarget(m_v3Position + m_v3Direction);
+}
+
 matrix4 Simplex::MyCamera::GetProjectionMatrix(void) { return m_m4Projection; }
 
 matrix4 Simplex::MyCamera::GetViewMatrix(void) { CalculateViewMatrix(); return m_m4View; }
 
+vector3 MyCamera::GetDirection(void) { return m_v3Direction; }
+
+vector3 MyCamera::GetRight(void) { return m_v3Right; }
+
+vector3 MyCamera::GetYawPitchRoll(void) { return m_v3YawPitchRoll; }
+
+vector3 MyCamera::GetUp(void) { return m_v3Up; }
+
+vector3 MyCamera::GetTarget(void) { return m_v3Target; }
+
+vector3 MyCamera::GetPosition(void) { return m_v3Position; }
+
+//Methods
 Simplex::MyCamera::MyCamera()
 {
 	Init(); //Init the object with default values
@@ -137,6 +165,7 @@ void Simplex::MyCamera::CalculateViewMatrix(void)
 {
 	//Calculate the look at
 	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Up);
+	m_m4View = rotationPitchYaw * m_m4View;
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)
@@ -154,3 +183,4 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 										m_v2NearFar.x, m_v2NearFar.y); //near and far
 	}
 }
+

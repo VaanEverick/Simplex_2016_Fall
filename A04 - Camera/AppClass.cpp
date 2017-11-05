@@ -1,9 +1,10 @@
 #include "AppClass.h"
+
 using namespace Simplex;
 void Application::InitVariables(void)
 {
 	////Change this to your name and email
-	//m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+	m_sProgrammer = "Christopher Banks - cdb6474@g.rit.edu";
 
 	////Alberto needed this at this position for software recording.
 	//m_pWindow->setPosition(sf::Vector2i(710, 0));
@@ -50,10 +51,6 @@ void Application::Display(void)
 
 	//clear the render list
 	m_pMeshMngr->ClearRenderList();
-
-	matrix4 m4Projection = glm::ortho(-10.f, 10.f, -10.f, 10.f, .01f, 1000.f);
-	matrix4 m4View = glm::lookAt(vector3(0, 0, 30) + m_v3CameraPosition * m_v3CameraRotation, vector3(0, 0, 0), AXIS_Y);
-	matrix4 m4Model = ToMatrix4(m_qArcBall);
 
 	//Render the list of MyMeshManager
 	m_pMyMeshMngr->Render();

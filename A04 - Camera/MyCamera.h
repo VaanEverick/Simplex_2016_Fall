@@ -12,9 +12,16 @@ namespace Simplex
 
 class MyCamera
 {
+	matrix4 rotationPitchYaw = IDENTITY_M4;
+
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
+
+	vector3 m_v3Direction = vector3(0.f, 0.f, -1.f); //What direction the camera faces
+	vector3 m_v3Right = vector3(1.f, 0.f, 0.f); //From start, right is +1 in x from camera pos
+	vector3 m_v3Top = vector3(1.f, 0.f, 0.f); //Top
+	vector3 m_v3YawPitchRoll = vector3(0.f, 0.f, 0.f); // Rotation Data
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
 
@@ -28,6 +35,7 @@ class MyCamera
 
 	matrix4 m_m4View; //View matrix
 	matrix4 m_m4Projection; //Projection Matrix
+
 public:
 	/*
 	USAGE: Constructor
@@ -211,6 +219,49 @@ public:
 	OUTPUT: ---
 	*/
 	void CalculateProjectionMatrix(void);
+
+	/*
+	USAGE : Gets the Direction camera is facing
+	ARGUMENTS : ---
+	OUTPUT : Direction vector of the camera
+	*/
+	vector3 GetDirection(void);
+
+	/*
+	USAGE : Set the direction the camera is facing
+	ARGUMENTS : 
+	-	vector3 a_v3Direction -> where the camera is facing
+	OUTPUT : ---
+	*/
+	void SetDirection(vector3 a_v3Direction);
+
+	/*
+	USAGE : Gets the Right vector of the camera 
+	ARGUMENTS : ---
+	OUTPUT : Vector pointing to the right of the camera
+	*/
+	vector3 GetRight(void);
+
+	/*
+	USAGE : Sets what direction is to the camera's right
+	ARGUMENTS : a_v3Right -> The vector pointing to the camera's right side
+	OUTPUT : ---
+	*/
+	void SetRight(vector3 a_v3Right);
+
+	/*
+	USAGE : Gets the Yaw, Pitch, and Roll of the camera 
+	ARGUMENTS : ---
+	OUTPUT : Yaw, Pitch, Roll vector of the camera
+	*/
+	vector3 GetYawPitchRoll(void);
+
+	/*
+	USAGE : Sets the Yaw, Pitch, and Roll of the camera
+	ARGUMENTS : a_v3YawPitchRoll -> sets a new YPR vector for the camera
+	OUTPUT : ---
+	*/
+	void SetYawPitchRoll(vector3 a_v3YawPitchRoll);	
 };
 
 } //namespace Simplex
