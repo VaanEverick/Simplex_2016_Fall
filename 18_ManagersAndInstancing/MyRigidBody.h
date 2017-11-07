@@ -8,9 +8,16 @@
 class MyRigidBody
 {
 public:
-	
+
+
+	Simplex::MeshManager* m_pMeshManager;
 	Simplex::Mesh* m_poBoundingSphere = nullptr;
 	Simplex::Mesh* m_BB = nullptr;
+
+	bool m_bVisible = true;
+	float m_fRadius = 0.0f;
+
+	Simplex::vector3 m_v3Colour = Simplex::C_WHITE;
 
 	Simplex::vector3 m_v3Min;
 	Simplex::vector3 m_v3Max;

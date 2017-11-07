@@ -39,7 +39,7 @@ void MyRigidBody::Render(Simplex::MyCamera* a_pCamera, Simplex::matrix4 a_m4Mode
 {
 	Simplex::vector3 v3Size = m_v3Max - m_v3Min;
 	Simplex::matrix4 resize = a_m4Model * glm::scale(Simplex::IDENTITY_M4, Simplex::vector3());
-	memcpy(matrix, glm::value_ptr(resize), 16 * sizeof(float));
+	memcpy(resize, glm::value_ptr(resize), 16 * sizeof(float));
 
 	float* matrix = new float[16];
 	memcpy(matrix, glm::value_ptr(a_m4Model), 16 * sizeof(float));
