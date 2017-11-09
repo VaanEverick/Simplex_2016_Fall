@@ -86,39 +86,39 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	m_m4ToWorld = a_m4ModelMatrix;
 
 	//Calculate the 8 corners of the cube
-	vector3 v3Corner[8];
+	
 	//Back square
-	v3Corner[0] = m_v3MinL;
-	v3Corner[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
-	v3Corner[2] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
-	v3Corner[3] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
+	m_v3Corners[0] = m_v3MinL;
+	m_v3Corners[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
+	m_v3Corners[2] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
+	m_v3Corners[3] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
 
 	//Front square
-	v3Corner[4] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
-	v3Corner[5] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
-	v3Corner[6] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
-	v3Corner[7] = m_v3MaxL;
+	m_v3Corners[4] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
+	m_v3Corners[5] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
+	m_v3Corners[6] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
+	m_v3Corners[7] = m_v3MaxL;
 
 	//Place them in world space
 	for (uint uIndex = 0; uIndex < 8; ++uIndex)
 	{
-		v3Corner[uIndex] = vector3(m_m4ToWorld * vector4(v3Corner[uIndex], 1.0f));
+		m_v3Corners[uIndex] = vector3(m_m4ToWorld * vector4(m_v3Corners[uIndex], 1.0f));
 	}
 
 	//Identify the max and min as the first corner
-	m_v3MaxG = m_v3MinG = v3Corner[0];
+	m_v3MaxG = m_v3MinG = m_v3Corners[0];
 
 	//get the new max and min for the global box
 	for (uint i = 1; i < 8; ++i)
 	{
-		if (m_v3MaxG.x < v3Corner[i].x) m_v3MaxG.x = v3Corner[i].x;
-		else if (m_v3MinG.x > v3Corner[i].x) m_v3MinG.x = v3Corner[i].x;
+		if (m_v3MaxG.x < m_v3Corners[i].x) m_v3MaxG.x = m_v3Corners[i].x;
+		else if (m_v3MinG.x > m_v3Corners[i].x) m_v3MinG.x = m_v3Corners[i].x;
 
-		if (m_v3MaxG.y < v3Corner[i].y) m_v3MaxG.y = v3Corner[i].y;
-		else if (m_v3MinG.y > v3Corner[i].y) m_v3MinG.y = v3Corner[i].y;
+		if (m_v3MaxG.y < m_v3Corners[i].y) m_v3MaxG.y = m_v3Corners[i].y;
+		else if (m_v3MinG.y >m_v3Corners[i].y) m_v3MinG.y = m_v3Corners[i].y;
 
-		if (m_v3MaxG.z < v3Corner[i].z) m_v3MaxG.z = v3Corner[i].z;
-		else if (m_v3MinG.z > v3Corner[i].z) m_v3MinG.z = v3Corner[i].z;
+		if (m_v3MaxG.z < m_v3Corners[i].z) m_v3MaxG.z = m_v3Corners[i].z;
+		else if (m_v3MinG.z > m_v3Corners[i].z) m_v3MinG.z = m_v3Corners[i].z;
 	}
 
 	//we calculate the distance between min and max vectors
@@ -234,6 +234,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	{
 		if(SAT(a_pOther) != eSATResults::SAT_NONE)
 			bColliding = false;// reset to false
+		MeshManager *m_pManager;
 	}
 
 	if (bColliding) //they are colliding
@@ -276,17 +277,91 @@ void MyRigidBody::AddToRenderList(void)
 
 uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 {
-	/*
-	Your code goes here instead of this comment;
+	//This is an optomistic method, meaning it has a series of bailout points as soon as it realizes that the end result is a non-collision
 
-	For this method, if there is an axis that separates the two objects
-	then the return will be different than 0; 1 for any separating axis
-	is ok if you are not going for the extra credit, if you could not
-	find a separating axis you need to return 0, there is an enum in
-	Simplex that might help you [eSATResults] feel free to use it.
-	(eSATResults::SAT_NONE has a value of 0)
-	*/
+	std::vector<vector3> axes; 
+
+	axes.push_back(glm::normalize(m_v3Corners[1] - m_v3Corners[0]));	//This->X axis
+	axes.push_back(glm::normalize(m_v3Corners[2] - m_v3Corners[0]));	//This->Y axis
+	axes.push_back(glm::normalize(m_v3Corners[4] - m_v3Corners[0]));	//This->Z axis
+
+	axes.push_back(glm::normalize(a_pOther->m_v3Corners[1] - a_pOther->m_v3Corners[0]));	//Other->X axis
+	axes.push_back(glm::normalize(a_pOther->m_v3Corners[2] - a_pOther->m_v3Corners[0]));	//Other->Y axis
+	axes.push_back(glm::normalize(a_pOther->m_v3Corners[4] - a_pOther->m_v3Corners[0]));	//Other->Z axis
+
+	//check intersects on each projection using a pair of min and max values
+	float fMin1;
+	float fMin2;
+	float fMax1;
+	float fMax2;
+
+	//Loop through each axis with each RigidBody to check for an obvious seperation
+	//Saves a lot of hassle with some quick checks
+	for (uint i = 0; i < 6; i++)
+	{
+		GetMinMax(m_v3Corners, axes[i], fMin1, fMax1);
+		GetMinMax(m_v3Corners, axes[i], fMin2, fMax2);
+
+		//if the new max values are less than the new min values, there is a clear seperation on that axis
+		//A plane exists, return a number
+		if (fMax1 < fMin2 || fMax2 < fMin1)
+		{
+			switch (i)
+			{
+			case 0: return eSATResults::SAT_AX; break;
+			case 1: return eSATResults::SAT_AY; break;
+			case 2: return eSATResults::SAT_AZ; break;
+			case 3: return eSATResults::SAT_BX; break;
+			case 4: return eSATResults::SAT_BY; break;
+			case 5: return eSATResults::SAT_BZ; break;
+			} //end plane switch
+		} //end if overlap
+	} // end for axis
+
+	//If you're hear, it means the cheap way wasn't enough, and we have to start checking some serious projections
+	//An internal return on the for loop ahead will return an eSATResult if the cross product detects a seperation plane
+
+	//This is our test axis. we will be checking it as a cross product result to determine if we have to keep moving through the list
+	vector3 v3Axis;
+
+	int k = 6; //Newly added axes updates
+
+	for (uint i = 0; i <= 2; i++) //This-> axis updates
+	{
+		for (uint j = 3; j <= 5; j++) //Other-> axis updates
+		{
+			v3Axis = glm::cross(axes[i], axes[j]);
+
+			if (v3Axis != vector3(0.f, 0.f, 0.f))
+			{
+				axes.push_back(glm::normalize(v3Axis));
+				GetMinMax(m_v3Corners, axes[k], fMin1, fMax1);
+				GetMinMax(a_pOther->m_v3Corners, axes[k], fMin2, fMax2);
+				if (fMax1 < fMin2 || fMax2 < fMin1)
+				{
+					return k + 1;
+				}
+				k++;
+			} //end if
+		} // end Other updates
+	} //end this updates
 
 	//there is no axis test that separates this two objects
 	return eSATResults::SAT_NONE;
+}
+
+void Simplex::MyRigidBody::GetMinMax(vector3 * a_pv3Corners, vector3 a_v3Axis, float & a_fMin, float & a_fMax)
+{
+	a_fMin = std::numeric_limits<float>::max();
+	a_fMax = -std::numeric_limits<float>::max();
+
+	for (uint i = 0; i < 8; i++)
+	{
+		float fDot = glm::dot(a_v3Axis, a_pv3Corners[i]);
+
+		//set min and max with this dot result using a min/max comparison
+		a_fMin = glm::min(a_fMin, fDot);
+		a_fMax = glm::max(a_fMax, fDot);
+
+	}
 }

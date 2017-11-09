@@ -38,6 +38,8 @@ class MyRigidBody
 
 	std::set<MyRigidBody*> m_CollidingRBSet; //set of rigid bodies this one is colliding with
 
+	vector3 m_v3Corners[8]; //world-space coordinates for the 8 corners of the "shadowbox" cube
+
 public:
 	/*
 	Usage: Constructor
@@ -247,6 +249,13 @@ private:
 	OUTPUT: 0 for colliding, other = first axis that succeeds test
 	*/
 	uint SAT(MyRigidBody* const a_pOther);
+	/*
+	USAGE :
+	ARGUMENTS :
+	OUTPUT : 
+	*/
+	void GetMinMax(vector3* a_pv3Corners, vector3 a_v3Axis, float& a_fMin, float& a_fMax);
+
 };//class
 
 } //namespace Simplex
