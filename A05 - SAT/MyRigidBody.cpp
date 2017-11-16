@@ -300,7 +300,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	for (uint i = 0; i < 6; i++)
 	{
 		GetMinMax(m_v3Corners, axes[i], fMin1, fMax1);
-		GetMinMax(m_v3Corners, axes[i], fMin2, fMax2);
+		GetMinMax(a_pOther->m_v3Corners, axes[i], fMin2, fMax2);
 
 		//if the new max values are less than the new min values, there is a clear seperation on that axis
 		//A plane exists, return a number
