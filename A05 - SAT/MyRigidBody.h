@@ -71,35 +71,30 @@ public:
 	Output: ---
 	*/
 	void Swap(MyRigidBody& other);
-
 	/*
 	USAGE: Will render the Rigid Body at the model to world matrix
 	ARGUMENTS: ---
 	OUTPUT: ---
 	*/
 	void AddToRenderList(void);
-
 	/*
 	USAGE: Clears the colliding list
 	ARGUMENTS: ---
 	OUTPUT: ---
 	*/
 	void ClearCollidingList(void);
-
 	/*
 	USAGE: Mark collision with the incoming Rigid Body
 	ARGUMENTS: MyRigidBody* other -> inspected rigid body
 	OUTPUT: ---
 	*/
 	void AddCollisionWith(MyRigidBody* a_pOther);
-
 	/*
 	USAGE: Remove marked collision with the incoming Rigid Body
 	ARGUMENTS: MyRigidBody* other -> inspected rigid body
 	OUTPUT: ---
 	*/
 	void RemoveCollisionWith(MyRigidBody* a_pOther);
-
 	/*
 	USAGE: Tells if the object is colliding with the incoming one
 	ARGUMENTS: MyRigidBody* const other -> inspected rigid body
@@ -255,7 +250,6 @@ private:
 	OUTPUT : 
 	*/
 	void GetMinMax(vector3* a_pv3Corners, vector3 a_v3Axis, float& a_fMin, float& a_fMax);
-
 };//class
 
 } //namespace Simplex

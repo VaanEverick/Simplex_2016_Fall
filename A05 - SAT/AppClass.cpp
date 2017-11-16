@@ -67,23 +67,22 @@ void Application::Display(void)
 {
 	// Clear the screen
 	ClearScreen();
-	
+
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
-	
+
 	//render list call
 	m_uRenderCallCount = m_pMeshMngr->Render();
 
 	//clear the render list
 	m_pMeshMngr->ClearRenderList();
-	
+
 	//draw gui
 	DrawGUI();
-	
+
 	//end the current frame (internally swaps the front and back buffers)
 	m_pWindow->display();
 }
-
 void Application::Release(void)
 {
 
