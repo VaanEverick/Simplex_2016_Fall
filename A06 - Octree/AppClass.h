@@ -13,7 +13,7 @@ Date: 2017/06
 #include "MyEntityManager.h"
 #include "MyOctree.h"
 
-#include "Simplex\Physics\Octant.h"
+
 
 namespace Simplex
 {
