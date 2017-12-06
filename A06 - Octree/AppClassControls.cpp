@@ -8,7 +8,7 @@ void Application::ProcessMouseMovement(sf::Event a_event)
 	sf::Vector2i window = m_pWindow->getPosition();
 	m_v3Mouse.x = static_cast<float>(mouse.x - window.x);
 	m_v3Mouse.y = static_cast<float>(mouse.y - window.y);
-	if(!m_pSystem->IsWindowFullscreen() && !m_pSystem->IsWindowBorderless())
+	if (!m_pSystem->IsWindowFullscreen() && !m_pSystem->IsWindowBorderless())
 		m_v3Mouse += vector3(-8.0f, -32.0f, 0.0f);
 	gui.io.MousePos = ImVec2(m_v3Mouse.x, m_v3Mouse.y);
 }
@@ -79,7 +79,7 @@ void Application::ProcessKeyPressed(sf::Event a_event)
 		m_bModifier = true;
 		break;
 	}
-	
+
 	//gui
 	gui.io.KeysDown[a_event.key.code] = true;
 	gui.io.KeyCtrl = a_event.key.control;
@@ -107,33 +107,43 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 	case sf::Keyboard::F4:
 		m_pCameraMngr->SetCameraMode(CAM_ORTHO_X);
 		break;
+	case sf::Keyboard::F5:
+		displayOctree = !displayOctree;
+		break;
 	case sf::Keyboard::F:
 		bFPSControl = !bFPSControl;
 		m_pCameraMngr->SetFPS(bFPSControl);
 		break;
 	case sf::Keyboard::PageUp:
-		++m_uOctantID;
-		/*
-		if (m_uOctantID >= m_pRoot->GetOctantCount())
-			m_uOctantID = - 1;
-		*/
+		m_pRoot->SetCurrentOctantID(m_pRoot->GetCurrentOctantID() + 1);
+		displayOctree = false;
+
+		if (m_pRoot->GetCurrentOctantID() >= m_pRoot->GetOctantCount()) {
+			m_pRoot->SetCurrentOctantID(-1);
+			displayOctree = true;
+		}
+
+
 		break;
 	case sf::Keyboard::PageDown:
-		--m_uOctantID;
-		/*
-		if (m_uOctantID >= m_pRoot->GetOctantCount())
-			m_uOctantID = - 1;
-		*/
+		m_pRoot->SetCurrentOctantID(m_pRoot->GetCurrentOctantID() - 1);
+		displayOctree = false;
+
+		if (m_pRoot->GetCurrentOctantID() >= m_pRoot->GetOctantCount()) {
+			m_pRoot->SetCurrentOctantID(-1);
+			displayOctree = true;
+		}
+
 		break;
 	case sf::Keyboard::Add:
-		if (m_uOctantLevels < 4)
+		if (m_uOctantLevels < 5)
 		{
 			m_pEntityMngr->ClearDimensionSetAll();
 			++m_uOctantLevels;
-			/*
+
 			SafeDelete(m_pRoot);
 			m_pRoot = new MyOctant(m_uOctantLevels, 5);
-			*/
+
 		}
 		break;
 	case sf::Keyboard::Subtract:
@@ -141,10 +151,10 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		{
 			m_pEntityMngr->ClearDimensionSetAll();
 			--m_uOctantLevels;
-			/*
+
 			SafeDelete(m_pRoot);
 			m_pRoot = new MyOctant(m_uOctantLevels, 5);
-			*/
+
 		}
 		break;
 	case sf::Keyboard::LShift:

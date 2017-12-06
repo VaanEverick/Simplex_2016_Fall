@@ -172,7 +172,7 @@ void Simplex::MyEntityManager::Update(void)
 	{
 		m_mEntityArray[i]->ClearCollisionList();
 	}
-
+	
 	//check collisions
 	for (uint i = 0; i < m_uEntityCount - 1; i++)
 	{
